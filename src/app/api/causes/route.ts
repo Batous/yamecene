@@ -7,14 +7,13 @@ import { Prisma } from '@prisma/client';
 
 const createCauseSchema = z.object({
   title: z.string().min(3, 'Le titre doit contenir au moins 3 caractères'),
-  summary: z.string().optional(),
-  description: z.string().min(10, 'La description doit contenir au moins 10 caractères'),
+  summary: z.string().min(10, 'Le résumé doit contenir au moins 10 caractères'),
+  description: z.string().min(20, 'La description doit contenir au moins 20 caractères'),
   type: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
   reference: z.string().optional(),
   goalAmount: z.number().positive('Le montant objectif doit être positif').optional(),
-  porteurId: z.string().min(1, "L'identifiant du porteur est requis"),
   accessCode: z.string().min(1, "Le code d'accès est requis"),
   milestones: z
     .array(
@@ -24,6 +23,14 @@ const createCauseSchema = z.object({
       })
     )
     .optional(),
+  // Porteur info (auto-create user)
+  porteurName: z.string().min(2, 'Le nom du porteur est requis'),
+  porteurEmail: z.string().email('Email invalide'),
+  porteurPhone: z.string().optional(),
+  porteurCity: z.string().optional(),
+  porteurCountry: z.string().optional(),
+  porteurMobileOperator: z.string().optional(),
+  porteurMobileNumber: z.string().optional(),
 });
 
 // ─── Helpers ───────────────────────────────────────────────────
@@ -32,7 +39,7 @@ function generateSlug(title: string): string {
   const base = title
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // remove accents
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-');
@@ -73,19 +80,11 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Calculate donation totals per cause (only confirmed)
     const causesWithTotals = await Promise.all(
       causes.map(async (cause) => {
         const totals = await db.don.aggregate({
-          where: {
-            causeId: cause.id,
-            status: 'confirmed',
-          },
-          _sum: {
-            amount: true,
-            commission: true,
-            netPorteur: true,
-          },
+          where: { causeId: cause.id, status: 'confirmed' },
+          _sum: { amount: true, commission: true, netPorteur: true },
           _count: true,
         });
 
@@ -96,12 +95,7 @@ export async function GET() {
           commissionTotal: totals._sum.commission ?? 0,
           netPorteurTotal: totals._sum.netPorteur ?? 0,
           progressPercent: cause.goalAmount
-            ? Math.min(
-                100,
-                Math.round(
-                  ((totals._sum.amount ?? 0) / cause.goalAmount) * 100
-                )
-              )
+            ? Math.min(100, Math.round(((totals._sum.amount ?? 0) / cause.goalAmount) * 100))
             : 0,
         };
       })
@@ -133,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data;
 
-    // Validate access code is available
+    // Validate access code
     const accessCode = await db.accessCode.findUnique({
       where: { code: data.accessCode },
     });
@@ -147,38 +141,46 @@ export async function POST(request: NextRequest) {
 
     if (accessCode.status !== 'available') {
       return NextResponse.json(
-        { error: "Ce code d'accès n'est plus disponible", codeStatus: accessCode.status },
+        { error: "Ce code d'accès n'est plus disponible" },
         { status: 400 }
       );
     }
 
-    // Verify porteur exists
-    const porteur = await db.user.findUnique({
-      where: { id: data.porteurId },
-    });
-
-    if (!porteur) {
-      return NextResponse.json(
-        { error: 'Porteur introuvable' },
-        { status: 404 }
-      );
-    }
+    // Build mobile money config
+    const mobileMoneyConfig = data.porteurMobileOperator && data.porteurMobileNumber
+      ? JSON.stringify({ operator: data.porteurMobileOperator, number: data.porteurMobileNumber })
+      : null;
 
     // Generate unique slug
     let slug = generateSlug(data.title);
-    const existingSlug = await db.cause.findUnique({ where: { slug } });
-    if (existingSlug) {
-      slug = generateSlug(data.title); // regenerate with new suffix
-    }
 
-    // Create cause and mark access code as used in a transaction
+    // Create porteur, cause, mark code in a transaction
     const cause = await db.$transaction(async (tx) => {
+      // Find or create porteur
+      let porteur = await tx.user.findUnique({
+        where: { email: data.porteurEmail },
+      });
+
+      if (!porteur) {
+        porteur = await tx.user.create({
+          data: {
+            email: data.porteurEmail,
+            name: data.porteurName,
+            phone: data.porteurPhone ?? null,
+            city: data.porteurCity ?? null,
+            country: data.porteurCountry ?? null,
+            role: 'porteur',
+            mobileMoneyConfig,
+          },
+        });
+      }
+
       // Mark access code as used
       await tx.accessCode.update({
         where: { code: data.accessCode },
         data: {
           status: 'used',
-          usedBy: data.porteurId,
+          usedBy: porteur.id,
           usedAt: new Date(),
         },
       });
@@ -195,7 +197,7 @@ export async function POST(request: NextRequest) {
           country: data.country,
           reference: data.reference,
           goalAmount: data.goalAmount,
-          porteurId: data.porteurId,
+          porteurId: porteur.id,
           accessCode: data.accessCode,
           status: 'pending',
           milestones: data.milestones
@@ -208,14 +210,7 @@ export async function POST(request: NextRequest) {
             : undefined,
         },
         include: {
-          porteur: {
-            select: {
-              id: true,
-              name: true,
-              city: true,
-              country: true,
-            },
-          },
+          porteur: { select: { id: true, name: true, city: true, country: true } },
           milestones: true,
         },
       });
@@ -223,12 +218,12 @@ export async function POST(request: NextRequest) {
       return newCause;
     });
 
-    return NextResponse.json({ cause }, { status: 201 });
+    return NextResponse.json({ slug: cause.slug }, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
         return NextResponse.json(
-          { error: 'Une cause avec ce slug existe déjà' },
+          { error: 'Une erreur est survenue (conflit). Veuillez réessayer.' },
           { status: 409 }
         );
       }

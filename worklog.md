@@ -24,22 +24,13 @@ Task: Update layout and CSS theme
 
 Work Log:
 - Updated layout.tsx metadata: title set to "YaMécènes — La Ruche des Mécènes", description set to French fundraising tagline
-- Removed Z.ai-specific metadata (keywords, authors, icons, openGraph, twitter)
 - Changed html lang from "en" to "fr"
-- Preserved Geist fonts, Toaster import, and body class structure
 - Added @layer utilities block to globals.css with 6 custom classes:
-  - .honey-gradient: amber-600 → amber-500 → orange-400 gradient background
-  - .honey-text: same gradient applied as text via background-clip
-  - .honeycomb-bg: subtle repeating hexagon SVG pattern in amber at 6% opacity
-  - .card-hover: hover transition with translateY(-2px), scale(1.01), amber-tinted shadow
-  - .fade-in: 0.5s opacity animation
-  - .slide-up: 0.5s opacity + translateY(16px→0) animation
-- All existing shadcn theme variables (:root, .dark) left untouched
+  - .honey-gradient, .honey-text, .honeycomb-bg, .card-hover, .fade-in, .slide-up
 
 Stage Summary:
-- Layout is now branded for YaMécènes with French locale
-- 6 reusable utility classes available for honey/amber theming across components
-- No breaking changes to existing theme or component styling
+- Layout branded for YaMécènes with French locale
+- 6 reusable utility classes available for honey/amber theming
 
 ---
 Task ID: 3
@@ -48,20 +39,39 @@ Task: Create all API routes
 
 Work Log:
 - Created 9 API route files covering the full YaMécènes backend
-- `/api/causes/route.ts`: GET all causes (active/pending) with porteur info, donation totals, milestones, progress %; POST new cause with zod validation, access code validation (must be 'available'), slug generation (lowercase, accents stripped, random suffix), transactional code marking
-- `/api/causes/[slug]/route.ts`: GET single cause by slug with full details including porteur, milestones with dynamic reached status, confirmed donations, and poem data
-- `/api/validate-code/route.ts`: POST validates access code availability, returns code type and status
-- `/api/access-codes/route.ts`: GET lists all codes with cause association and status stats; POST generates up to 100 codes in bulk
-- `/api/don/route.ts`: POST creates donation with 5% commission calculation, creates poem placeholder, transactionally checks and updates milestones when total reaches target thresholds
-- `/api/admin/causes/route.ts`: GET all causes with full admin details (porteur, milestones, access codes, donation totals); PATCH updates cause status
-- `/api/admin/stats/route.ts`: GET comprehensive dashboard stats (causes by status, confirmed/all donations with totals/commission/average, users by role, access codes, poems by status, ceintures, top 5 causes, recent 10 donations)
-- `/api/poems/route.ts`: GET published poems with pagination, optional causeId filter, includes donation and mécène details
-- `/api/ceintures/route.ts`: GET ceinture level definitions (7 levels: blanche→or), mécène rankings sorted by total donated, theoretical vs awarded ceinture comparison, distribution counts
+- All POST routes use zod validation
+- All routes use try/catch with proper error handling and French error messages
+- Donation flow handles commission (5%), poem creation, and milestone updates atomically
+- Access code validation and cause creation use transactions for data integrity
 
 Stage Summary:
 - All 9 API routes created and lint-clean
-- All POST routes use zod validation
-- All routes use try/catch with proper error handling and French error messages
-- Donation flow handles commission (5%), poem creation, and milestone updates atomically via transactions
-- Access code validation and cause creation use transactions for data integrity
-- Ceintures endpoint includes both static level definitions and dynamic mécène rankings
+- Commission, poem, and milestone logic implemented
+
+---
+Task ID: 10
+Agent: Main
+Task: Phase 1 Frontend — Full implementation
+
+Work Log:
+- Created Zustand app store (`src/store/app-store.ts`) with page-based navigation and causeSlug state
+- Created Header component with responsive nav (desktop + mobile Sheet), amber theme, active state
+- Created Footer component with 4-column grid, brand, navigation, info, contact sections, sticky bottom
+- Built HomePage: hero section with honeycomb bg, stats bar (4 cards), mécène du jour featured cause with amber gradient, 3 cause cards with progress bars, "Comment ça marche" 3-step section, trust section
+- Rewrote CauseFormPage (was truncated): 3-step wizard (Code→Cause→Info), access code validation, milestones with add/remove, mobile money config, porteur auto-creation
+- Built CauseDetailPage: full cause view with stats row, progress bar, donate form (amount, name, anonymous toggle, 5% commission display), milestones checklist, donations list, porteur sidebar
+- Built CodeAccesPage: 3 pricing tiers, code generation via API, copy-to-clipboard, generated codes display, réseau de confiance section
+- Built AdminDashboard (via subagent): 3 tabs (Vue d'ensemble, Gestion des causes, Codes d'accès), stats cards, causes table with status management, code generation
+- Updated POST /api/causes to auto-create porteur users (find or create by email) instead of requiring porteurId
+- Fixed lint error (missing Separator import in CodeAccesPage)
+- Fixed cause navigation: added data-slug attributes and initialSlug prop for reliable slug passing
+- Wired all pages in page.tsx with client-side routing via Zustand
+
+Stage Summary:
+- Phase 1 frontend fully implemented: 5 pages (Home, Cause Form, Cause Detail, Code Access, Admin)
+- Shared layout: Header (responsive, amber theme) + Footer (sticky, 4-column)
+- Navigation: Zustand-based client-side routing with slug support
+- All API integrations working: causes, stats, donations, access codes
+- Admin dashboard with 3 tabs: overview stats, cause management, code generation
+- Lint clean, all pages render correctly in browser
+- Demo data: 3 active causes, 4 donations, 4 published poems, 2 ceintures, 7 available access codes
