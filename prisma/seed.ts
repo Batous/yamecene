@@ -1,4 +1,5 @@
 import { db } from '../src/lib/db'
+import type { AccessCode } from '../src/generated/prisma'
 
 async function seed() {
   const admin = await db.user.upsert({
@@ -79,7 +80,7 @@ async function seed() {
     },
   })
 
-  const codes = []
+  const codes: AccessCode[] = []
   for (let i = 0; i < 10; i++) {
     const code = await db.accessCode.create({
       data: {

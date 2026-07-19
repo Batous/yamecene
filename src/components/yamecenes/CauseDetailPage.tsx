@@ -86,6 +86,8 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
   const [donName, setDonName] = useState('')
   const [donAnonymous, setDonAnonymous] = useState(false)
   const [donSubmitting, setDonSubmitting] = useState(false)
+  const [donMethod, setDonMethod] = useState('mobile_money')
+  const [donProvider, setDonProvider] = useState('maxicash')
 
   useEffect(() => {
     if (!slugToLoad) return
@@ -110,7 +112,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
     if (!cause || !donAmount) return
     setDonSubmitting(true)
     try {
-      const res = await fetch('/api/don', {
+      const res = await fetch('/api/payments/intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -118,22 +120,14 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
           amount: parseFloat(donAmount),
           currency: donCurrency,
           displayName: donAnonymous ? 'Anonyme' : donName || 'Généreux donateur',
-          status: 'confirmed',
+          method: donMethod,
+          provider: donProvider,
         }),
       })
       const data = await res.json()
       if (res.ok) {
-        toast({
-          title: 'Merci pour votre don !',
-          description: data.message || `Votre don de ${formatMoney(parseFloat(donAmount), donCurrency)} a été enregistré.`,
-        })
-        setShowDonForm(false)
-        setDonAmount('')
-        setDonName('')
-        // Refresh cause data
-        const causeRes = await fetch(`/api/causes/${slugToLoad}`)
-        const causeData = await causeRes.json()
-        setCause(causeData.cause)
+        toast({ title: 'Paiement initialise', description: 'Votre contribution sera ajoutee apres la confirmation securisee du prestataire.' })
+        if (data.payment?.checkoutUrl) window.location.assign(data.payment.checkoutUrl)
       } else {
         toast({ title: 'Erreur', description: data.error, variant: 'destructive' })
       }
@@ -173,7 +167,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
       <Button variant="ghost" className="mb-6 text-amber-700 hover:bg-amber-50" onClick={() => navigate('home')}>
-        <ArrowLeft className="mr-2 h-4 w-4" /> Retour aux causes
+        <ArrowLeft className="mr-2 h-4 w-4" /> Retour aux projets
       </Button>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -238,13 +232,13 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
                 className="honey-gradient text-white border-0 shadow-lg shadow-amber-500/25 text-base"
                 onClick={() => setShowDonForm(true)}
               >
-                <Heart className="mr-2 h-5 w-5" /> Faire un don
+                <Heart className="mr-2 h-5 w-5" /> Soutenir ce projet
               </Button>
             ) : (
               <Card className="border-amber-200 bg-amber-50/50">
                 <CardHeader>
-                  <CardTitle className="text-lg text-amber-900">Faire un don</CardTitle>
-                  <CardDescription>Entrez le montant et vos informations.</CardDescription>
+                  <CardTitle className="text-lg text-amber-900">Soutenir ce projet</CardTitle>
+                  <CardDescription>Votre contribution est comptee uniquement apres confirmation du prestataire.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-3">
@@ -289,6 +283,22 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
                       </div>
                       {donAnonymous && <p className="text-xs text-gray-500">Votre don sera affiché comme &quot;Anonyme&quot;</p>}
                     </div>
+                    <div className="space-y-2">
+                      <Label>Methode</Label>
+                      <Select value={donMethod} onValueChange={setDonMethod}>
+                        <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                          <SelectItem value="mobile_money">Mobile Money</SelectItem><SelectItem value="card">Carte</SelectItem><SelectItem value="bank_transfer">Virement</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Prestataire</Label>
+                      <Select value={donProvider} onValueChange={setDonProvider}>
+                        <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                          <SelectItem value="maxicash">MaxiCash (RDC)</SelectItem><SelectItem value="cinetpay">CinetPay</SelectItem><SelectItem value="flutterwave">Flutterwave</SelectItem><SelectItem value="pawapay">PawaPay</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span>Commission plateforme: 5%</span>
@@ -302,7 +312,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
                       className="honey-gradient text-white border-0 shadow-md"
                     >
                       {donSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                      Confirmer le don
+                      Continuer vers le paiement
                     </Button>
                     <Button variant="ghost" onClick={() => setShowDonForm(false)}>Annuler</Button>
                   </div>
@@ -393,7 +403,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
           <div className="space-y-6">
             <Card className="border-amber-100">
               <CardHeader>
-                <CardTitle className="text-base">Porteur de la cause</CardTitle>
+                <CardTitle className="text-base">Porteur du projet</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">

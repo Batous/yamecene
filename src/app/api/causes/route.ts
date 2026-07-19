@@ -16,6 +16,8 @@ const createCauseSchema = z.object({
   reference: z.string().optional(),
   goalAmount: z.number().positive('Le montant objectif doit être positif').optional(),
   currency: z.string().optional(),
+  payoutModel: z.enum(['fund_manager', 'direct', 'multisig']).default('fund_manager'),
+  approvalThreshold: z.number().int().min(3).max(10).optional(),
   accessCode: z.string().min(1, "Le code d'accès est requis"),
   milestones: z
     .array(
@@ -200,6 +202,8 @@ export async function POST(request: NextRequest) {
           reference: data.reference,
           goalAmount: data.goalAmount,
           currency: normalizeCurrency(data.currency),
+          payoutModel: data.payoutModel,
+          approvalThreshold: data.payoutModel === 'multisig' ? (data.approvalThreshold ?? 3) : 0,
           porteurId: porteur.id,
           accessCode: data.accessCode,
           status: 'pending',

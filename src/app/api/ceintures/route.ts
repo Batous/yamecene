@@ -51,7 +51,7 @@ export async function GET() {
         const currentCeinture = m.ceintures[0] ?? null;
 
         // Determine theoretical ceinture level based on donation count
-        let theoreticalLevel = CEINTURE_LEVELS[0];
+        let theoreticalLevel: (typeof CEINTURE_LEVELS)[number] = CEINTURE_LEVELS[0];
         for (const cl of CEINTURE_LEVELS) {
           if (donationCount >= cl.minDonations) {
             theoreticalLevel = cl;
