@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAppStore } from '@/store/app-store'
 import { useToast } from '@/hooks/use-toast'
+import { SUPPORTED_CURRENCIES } from '@/lib/currency'
 
 const STEPS = [
   { label: 'Code d\'accès', icon: Key },
@@ -23,7 +24,7 @@ const CAUSE_TYPES = [
   'Agriculture', 'Culture & Art', 'Famille', 'Communauté', 'Autre',
 ]
 
-const MOBILE_OPERATORS = ['Orange Money', 'Wave', 'Free Money', 'MTN Mobile Money']
+const MOBILE_OPERATORS = ['Airtel Money', 'Orange Money', 'M-Pesa', 'MTN Mobile Money']
 
 export function CauseFormPage() {
   const { navigate } = useAppStore()
@@ -41,15 +42,16 @@ export function CauseFormPage() {
   const [description, setDescription] = useState('')
   const [causeType, setCauseType] = useState('')
   const [city, setCity] = useState('')
-  const [country, setCountry] = useState('Sénégal')
+  const [country, setCountry] = useState('République démocratique du Congo')
   const [reference, setReference] = useState('')
   const [goalAmount, setGoalAmount] = useState('')
+  const [currency, setCurrency] = useState('CDF')
   const [milestones, setMilestones] = useState([{ label: '', target: '' }])
   const [porteurName, setPorteurName] = useState('')
   const [porteurEmail, setPorteurEmail] = useState('')
   const [porteurPhone, setPorteurPhone] = useState('')
   const [porteurCity, setPorteurCity] = useState('')
-  const [porteurCountry, setPorteurCountry] = useState('Sénégal')
+  const [porteurCountry, setPorteurCountry] = useState('République démocratique du Congo')
   const [mobileOperator, setMobileOperator] = useState('')
   const [mobileNumber, setMobileNumber] = useState('')
 
@@ -95,6 +97,7 @@ export function CauseFormPage() {
           country,
           reference,
           goalAmount: goalAmount ? parseFloat(goalAmount) : undefined,
+          currency,
           milestones: milestones.filter((m) => m.label && m.target).map((m) => ({
             label: m.label,
             target: parseFloat(m.target),
@@ -177,7 +180,7 @@ export function CauseFormPage() {
       </Button>
 
       <h1 className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl">Présenter votre cause</h1>
-      <p className="mb-8 text-gray-600">Remplissez les étapes ci-dessous pour soumettre votre cause à la ruche.</p>
+      <p className="mb-8 text-gray-600">Remplissez les étapes ci-dessous pour soumettre votre cause à la communauté.</p>
 
       {/* Step indicator */}
       <div className="mb-8 flex items-center justify-between">
@@ -273,7 +276,7 @@ export function CauseFormPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Titre de la cause *</Label>
-                  <Input id="title" placeholder="Ex: École coranique de Médina — Toiture urgente" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Input id="title" placeholder="Ex: Aide scolaire pour les enfants de la paroisse de Matete" value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="summary">Résumé *</Label>
@@ -296,23 +299,34 @@ export function CauseFormPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="goalAmount">Objectif (FCFA)</Label>
+                    <Label htmlFor="goalAmount">Objectif</Label>
                     <Input id="goalAmount" type="number" placeholder="Ex: 500000" value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)} />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Devise de la cause</Label>
+                  <Select value={currency} onValueChange={setCurrency}>
+                    <SelectTrigger><SelectValue placeholder="Sélectionnez une devise" /></SelectTrigger>
+                    <SelectContent>
+                      {SUPPORTED_CURRENCIES.map((item) => (
+                        <SelectItem key={item.code} value={item.code}>{item.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="city">Ville</Label>
-                    <Input id="city" placeholder="Ex: Dakar" value={city} onChange={(e) => setCity(e.target.value)} />
+                    <Input id="city" placeholder="Ex: Kinshasa" value={city} onChange={(e) => setCity(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="country">Pays</Label>
-                    <Input id="country" placeholder="Sénégal" value={country} onChange={(e) => setCountry(e.target.value)} />
+                    <Input id="country" placeholder="République démocratique du Congo" value={country} onChange={(e) => setCountry(e.target.value)} />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="reference">Référence (qui vous connaît ?)</Label>
-                  <Input id="reference" placeholder="Nom de la personne ou structure qui vous recommande" value={reference} onChange={(e) => setReference(e.target.value)} />
+                  <Label htmlFor="reference">Référence (pasteur, paroisse ou structure qui vous connaît)</Label>
+                  <Input id="reference" placeholder="Ex: Pasteur, paroisse, association ou responsable local" value={reference} onChange={(e) => setReference(e.target.value)} />
                 </div>
 
                 {/* Milestones */}
@@ -330,7 +344,7 @@ export function CauseFormPage() {
                         <Input placeholder="Ex: Première tranche" value={m.label} onChange={(e) => updateMilestone(i, 'label', e.target.value)} />
                       </div>
                       <div className="w-32 space-y-1">
-                        <Label className="text-xs text-gray-500">Montant (FCFA)</Label>
+                        <Label className="text-xs text-gray-500">Montant ({currency})</Label>
                         <Input type="number" placeholder="100000" value={m.target} onChange={(e) => updateMilestone(i, 'target', e.target.value)} />
                       </div>
                       {milestones.length > 1 && (
@@ -368,11 +382,11 @@ export function CauseFormPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="pphone">Téléphone</Label>
-                    <Input id="pphone" placeholder="+221 77 123 45 67" value={porteurPhone} onChange={(e) => setPorteurPhone(e.target.value)} />
+                    <Input id="pphone" placeholder="+243 81 234 5678" value={porteurPhone} onChange={(e) => setPorteurPhone(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pcity">Ville</Label>
-                    <Input id="pcity" placeholder="Dakar" value={porteurCity} onChange={(e) => setPorteurCity(e.target.value)} />
+                    <Input id="pcity" placeholder="Kinshasa" value={porteurCity} onChange={(e) => setPorteurCity(e.target.value)} />
                   </div>
                 </div>
 

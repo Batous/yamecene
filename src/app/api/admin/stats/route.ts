@@ -76,6 +76,7 @@ export async function GET() {
           id: cause.id,
           title: cause.title,
           slug: cause.slug,
+          currency: cause.currency,
           porteurName: cause.porteur.name,
           donationTotal: totals._sum.amount ?? 0,
           donationCount: cause._count.dons,

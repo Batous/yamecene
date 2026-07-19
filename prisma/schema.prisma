@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -49,6 +49,7 @@ model Cause {
   country     String?
   reference   String?     // qui connaît le porteur
   goalAmount  Float?
+  currency    String      @default("CDF")
   status      String      @default("pending") // 'pending' | 'active' | 'closed' | 'rejected'
   porteurId   String
   accessCode  String?   @unique
@@ -79,6 +80,7 @@ model Don {
   causeId     String
   meceneId    String?   // nullable si discret
   amount      Float
+  currency    String    @default("CDF")
   commission  Float
   netPorteur  Float
   method      String    @default("mobile_money") // 'mobile_money' | 'paypal' | 'autre'

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { normalizeCurrency } from '@/lib/currency';
 
 // ─── Zod Schema ───────────────────────────────────────────────
 
@@ -8,6 +9,7 @@ const createDonSchema = z.object({
   causeId: z.string().min(1, "L'identifiant de la cause est requis"),
   meceneId: z.string().optional(),
   amount: z.number().positive('Le montant doit être positif'),
+  currency: z.string().optional(),
   method: z
     .enum(['mobile_money', 'paypal', 'autre'])
     .default('mobile_money'),
@@ -54,6 +56,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate commission (5%) and net amount
+    const currency = normalizeCurrency(data.currency ?? cause.currency);
+    if (currency !== normalizeCurrency(cause.currency)) {
+      return NextResponse.json(
+        { error: `Cette cause collecte en ${normalizeCurrency(cause.currency)}. Choisissez cette devise pour ce don.` },
+        { status: 400 }
+      );
+    }
     const commission = Math.round(data.amount * 0.05 * 100) / 100;
     const netPorteur = Math.round((data.amount - commission) * 100) / 100;
 
@@ -78,6 +87,7 @@ export async function POST(request: NextRequest) {
           causeId: data.causeId,
           meceneId: data.meceneId ?? null,
           amount: data.amount,
+          currency,
           commission,
           netPorteur,
           method: data.method,

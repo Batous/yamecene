@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YaMécènes — La Ruche des Mécènes",
-  description: "Plateforme de levée de fonds solidaire. Chaque cause trouve sa ruche, chaque donateur laisse une trace.",
+  title: "YaMécènes — Solidarité chrétienne congolaise",
+  description: "Plateforme de levée de fonds pour soutenir des causes chrétiennes et communautaires en RDC et dans la diaspora.",
 };
 
 export default function RootLayout({

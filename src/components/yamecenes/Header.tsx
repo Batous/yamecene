@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, X, Hexagon, ShieldCheck } from 'lucide-react'
+import { Menu, X, Church, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { useAppStore } from '@/store/app-store'
@@ -27,7 +27,7 @@ export function Header() {
           className="flex items-center gap-2 transition-opacity hover:opacity-80"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500">
-            <Hexagon className="h-5 w-5 text-white" />
+            <Church className="h-5 w-5 text-white" />
           </div>
           <span className="text-xl font-bold tracking-tight">
             <span className="honey-text">YaMécènes</span>
@@ -57,7 +57,7 @@ export function Header() {
         <div className="hidden items-center gap-2 md:flex">
           <div className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
             <ShieldCheck className="h-3.5 w-3.5" />
-            Plateforme sécurisée
+            Causes vérifiées
           </div>
         </div>
 
@@ -70,7 +70,7 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetTitle className="flex items-center gap-2 text-lg font-bold">
-              <Hexagon className="h-5 w-5 text-amber-500" />
+              <Church className="h-5 w-5 text-amber-500" />
               <span className="honey-text">YaMécènes</span>
             </SheetTitle>
             <nav className="mt-6 flex flex-col gap-1">

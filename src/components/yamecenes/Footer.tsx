@@ -1,6 +1,6 @@
 'use client'
 
-import { Hexagon, Heart } from 'lucide-react'
+import { Church, Heart } from 'lucide-react'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -13,14 +13,14 @@ export function Footer() {
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500">
-                <Hexagon className="h-4 w-4 text-white" />
+                <Church className="h-4 w-4 text-white" />
               </div>
               <span className="text-lg font-bold">
                 <span className="honey-text">YaMécènes</span>
               </span>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-gray-600">
-              La Ruche des Mécènes — Chaque cause trouve sa ruche, chaque donateur laisse une trace.
+              Solidarité chrétienne congolaise — Chaque don soutient une famille, une paroisse ou une communauté.
             </p>
           </div>
 
@@ -60,8 +60,8 @@ export function Footer() {
           <div>
             <h4 className="mb-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">Contact</h4>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li>contact@yamecenes.sn</li>
-              <li>Dakar, Sénégal</li>
+              <li>contact@yamecenes.org</li>
+              <li>Kinshasa, RDC</li>
             </ul>
           </div>
         </div>
@@ -74,7 +74,7 @@ export function Footer() {
           <div className="flex items-center gap-1 text-xs text-gray-400">
             <span>Fait avec</span>
             <Heart className="h-3 w-3 fill-red-400 text-red-400" />
-            <span>à Dakar</span>
+            <span>pour le Congo</span>
           </div>
         </div>
       </div>

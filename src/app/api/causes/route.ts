@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import { normalizeCurrency } from '@/lib/currency';
 
 // ─── Zod Schemas ───────────────────────────────────────────────
 
@@ -14,6 +15,7 @@ const createCauseSchema = z.object({
   country: z.string().optional(),
   reference: z.string().optional(),
   goalAmount: z.number().positive('Le montant objectif doit être positif').optional(),
+  currency: z.string().optional(),
   accessCode: z.string().min(1, "Le code d'accès est requis"),
   milestones: z
     .array(
@@ -197,6 +199,7 @@ export async function POST(request: NextRequest) {
           country: data.country,
           reference: data.reference,
           goalAmount: data.goalAmount,
+          currency: normalizeCurrency(data.currency),
           porteurId: porteur.id,
           accessCode: data.accessCode,
           status: 'pending',

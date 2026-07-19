@@ -28,6 +28,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
+import { formatMoney } from '@/lib/currency'
 import {
   ArrowLeft,
   Activity,
@@ -94,11 +95,13 @@ interface AdminStats {
     title: string
     donationTotal: number
     donationCount: number
+    currency?: string
     progressPercent: number
   }>
   recentDons: Array<{
     id: string
     amount: number
+    currency?: string
     confirmed: boolean
     createdAt: string
     mecene: { name: string } | null
@@ -116,6 +119,7 @@ interface CauseAdmin {
   city: string
   country: string
   goalAmount: number
+  currency?: string
   porteur: {
     id: string
     name: string
@@ -153,8 +157,8 @@ interface AccessCodeStats {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function formatFCFA(amount: number): string {
-  return amount.toLocaleString('fr-FR') + ' FCFA'
+function formatAmount(amount: number, currency?: string): string {
+  return currency ? formatMoney(amount, currency) : `${amount.toLocaleString('fr-FR')} multi-devise`
 }
 
 function formatDate(dateStr: string): string {
@@ -471,7 +475,7 @@ export function AdminDashboard() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold text-gray-900">
-                          {formatFCFA(stats?.donations.totalAmount ?? 0)}
+                          {formatAmount(stats?.donations.totalAmount ?? 0)}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
                           {stats?.donations.totalConfirmed ?? 0} dons confirmés
@@ -493,10 +497,10 @@ export function AdminDashboard() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold text-gray-900">
-                          {formatFCFA(stats?.donations.totalCommission ?? 0)}
+                          {formatAmount(stats?.donations.totalCommission ?? 0)}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          Net porteur : {formatFCFA(stats?.donations.totalNetPorteur ?? 0)}
+                          Net porteur : {formatAmount(stats?.donations.totalNetPorteur ?? 0)}
                         </p>
                       </CardContent>
                     </Card>
@@ -607,7 +611,7 @@ export function AdminDashboard() {
                           <TrendingUp className="h-3.5 w-3.5 text-rose-500" />
                           <p className="text-xs text-gray-500">Montant moyen</p>
                         </div>
-                        <p className="text-lg font-bold text-gray-900">{formatFCFA(stats?.donations.averageAmount ?? 0)}</p>
+                        <p className="text-lg font-bold text-gray-900">{formatAmount(stats?.donations.averageAmount ?? 0)}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -671,7 +675,7 @@ export function AdminDashboard() {
                               {don.cause?.title ?? '—'}
                             </TableCell>
                             <TableCell className="font-semibold text-gray-900">
-                              {formatFCFA(don.amount)}
+                              {formatAmount(don.amount, don.currency)}
                             </TableCell>
                             <TableCell>
                               {don.confirmed ? (
@@ -776,10 +780,10 @@ export function AdminDashboard() {
                               </TableCell>
                               <TableCell>{statusBadge(cause.status)}</TableCell>
                               <TableCell className="text-right font-semibold text-gray-900">
-                                {formatFCFA(cause.donationTotal)}
+                                {formatAmount(cause.donationTotal, cause.currency)}
                               </TableCell>
                               <TableCell className="text-right text-gray-600">
-                                {cause.goalAmount ? formatFCFA(cause.goalAmount) : '—'}
+                                {cause.goalAmount ? formatAmount(cause.goalAmount, cause.currency) : '—'}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">

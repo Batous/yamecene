@@ -11,7 +11,9 @@ import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
+import { formatMoney, normalizeCurrency } from '@/lib/currency'
 import {
   ArrowLeft,
   Heart,
@@ -38,6 +40,7 @@ interface MilestoneData {
 interface DonData {
   id: string
   amount: number
+  currency: string
   displayName: string | null
   createdAt: string
   mecene: { id: string; name: string | null; city: string | null } | null
@@ -53,6 +56,7 @@ interface CauseDetailData {
   city: string | null
   country: string | null
   goalAmount: number | null
+  currency: string
   status: string
   createdAt: string
   porteur: { id: string; name: string | null; email: string; phone: string | null; city: string | null; country: string | null }
@@ -78,14 +82,15 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
   // Donation form
   const [showDonForm, setShowDonForm] = useState(false)
   const [donAmount, setDonAmount] = useState('')
+  const [donCurrency, setDonCurrency] = useState('CDF')
   const [donName, setDonName] = useState('')
   const [donAnonymous, setDonAnonymous] = useState(false)
   const [donSubmitting, setDonSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!causeSlug) return
+    if (!slugToLoad) return
     setLoading(true)
-    fetch(`/api/causes/${causeSlug}`)
+    fetch(`/api/causes/${slugToLoad}`)
       .then((res) => {
         if (!res.ok) throw new Error('Cause introuvable')
         return res.json()
@@ -93,7 +98,13 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
       .then((data) => setCause(data.cause))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [causeSlug])
+  }, [slugToLoad])
+
+  useEffect(() => {
+    if (cause?.currency) {
+      setDonCurrency(normalizeCurrency(cause.currency))
+    }
+  }, [cause?.currency])
 
   async function submitDon() {
     if (!cause || !donAmount) return
@@ -105,6 +116,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
         body: JSON.stringify({
           causeId: cause.id,
           amount: parseFloat(donAmount),
+          currency: donCurrency,
           displayName: donAnonymous ? 'Anonyme' : donName || 'Généreux donateur',
           status: 'confirmed',
         }),
@@ -113,13 +125,13 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
       if (res.ok) {
         toast({
           title: 'Merci pour votre don !',
-          description: data.message || `Votre don de ${parseInt(donAmount).toLocaleString('fr-FR')} FCFA a été enregistré.`,
+          description: data.message || `Votre don de ${formatMoney(parseFloat(donAmount), donCurrency)} a été enregistré.`,
         })
         setShowDonForm(false)
         setDonAmount('')
         setDonName('')
         // Refresh cause data
-        const causeRes = await fetch(`/api/causes/${causeSlug}`)
+        const causeRes = await fetch(`/api/causes/${slugToLoad}`)
         const causeData = await causeRes.json()
         setCause(causeData.cause)
       } else {
@@ -188,8 +200,8 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
         <div className="mb-8 grid grid-cols-3 gap-4">
           <Card className="border-amber-100">
             <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-amber-600">{Math.round(cause.donationTotal).toLocaleString('fr-FR')}</p>
-              <p className="text-xs text-gray-500">FCFA collectés</p>
+              <p className="text-2xl font-bold text-amber-600">{formatMoney(cause.donationTotal, cause.currency)}</p>
+              <p className="text-xs text-gray-500">collectés</p>
             </CardContent>
           </Card>
           <Card className="border-amber-100">
@@ -209,9 +221,9 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
         {/* Progress bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-amber-600 font-semibold">{Math.round(cause.donationTotal).toLocaleString('fr-FR')} FCFA</span>
+            <span className="text-amber-600 font-semibold">{formatMoney(cause.donationTotal, cause.currency)}</span>
             {cause.goalAmount && (
-              <span className="text-gray-500">Objectif: {Math.round(cause.goalAmount).toLocaleString('fr-FR')} FCFA</span>
+              <span className="text-gray-500">Objectif: {formatMoney(cause.goalAmount, cause.currency)}</span>
             )}
           </div>
           <Progress value={cause.progressPercent} className="h-3 bg-amber-100" />
@@ -237,7 +249,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
-                      <Label>Montant (FCFA) *</Label>
+                      <Label>Montant *</Label>
                       <Input
                         type="number"
                         placeholder="5000"
@@ -245,7 +257,16 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
                         onChange={(e) => setDonAmount(e.target.value)}
                       />
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
+                    <div className="space-y-2">
+                      <Label>Devise</Label>
+                      <Select value={donCurrency} onValueChange={setDonCurrency} disabled>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={donCurrency}>{donCurrency}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 sm:col-span-3">
                       <Label>Nom affiché</Label>
                       <div className="flex gap-2">
                         <Input
@@ -272,7 +293,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span>Commission plateforme: 5%</span>
                     <span>·</span>
-                    <span>Net porteur: {donAmount ? Math.round(parseFloat(donAmount) * 0.95).toLocaleString('fr-FR') : '—'} FCFA</span>
+                    <span>Net porteur: {donAmount ? formatMoney(parseFloat(donAmount) * 0.95, donCurrency) : '—'}</span>
                   </div>
                   <div className="flex gap-3">
                     <Button
@@ -324,7 +345,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
                           {m.label}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {Math.round(m.target).toLocaleString('fr-FR')} FCFA
+                          {formatMoney(m.target, cause.currency)}
                           {m.reached && ' — Atteint !'}
                         </p>
                       </div>
@@ -359,7 +380,7 @@ export function CauseDetailPage({ initialSlug }: CauseDetailPageProps) {
                         </div>
                       </div>
                       <span className="font-semibold text-amber-600">
-                        {Math.round(don.amount).toLocaleString('fr-FR')} FCFA
+                        {formatMoney(don.amount, don.currency || cause.currency)}
                       </span>
                     </div>
                   ))}

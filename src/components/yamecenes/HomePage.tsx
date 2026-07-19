@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatMoney } from '@/lib/currency'
 import {
   ArrowRight,
   Heart,
   Users,
   TrendingUp,
-  Hexagon,
+  Church,
   Star,
   MapPin,
   Clock,
@@ -30,6 +31,7 @@ interface CauseData {
   city: string | null
   country: string | null
   goalAmount: number | null
+  currency: string
   status: string
   porteur: { id: string; name: string | null; city: string | null; country: string | null }
   milestones: { id: string; label: string; target: number; reached: boolean; reachedAt: string | null }[]
@@ -91,16 +93,16 @@ export function HomePage() {
             className="mx-auto max-w-3xl text-center"
           >
             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-medium text-amber-800">
-              <Hexagon className="h-4 w-4" />
-              La Ruche des Mécènes
+              <Church className="h-4 w-4" />
+              Solidarité chrétienne congolaise
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-              Chaque cause trouve sa{' '}
-              <span className="honey-text">ruche</span>
+              Chaque cause trouve une{' '}
+              <span className="honey-text">famille de soutien</span>
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-gray-600 sm:text-xl">
-              YaMécènes connecte les porteurs de causes avec des mécènes engagés.
-              Votre générosité construit des écoles, finance des soins et transforme des communautés au Sénégal.
+              YaMécènes connecte les porteurs de causes avec des donateurs engagés.
+              Votre générosité aide des familles, des églises locales, des écoles et des communautés en RDC et dans la diaspora congolaise.
             </p>
             <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <Button
@@ -133,9 +135,9 @@ export function HomePage() {
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               {[
-                { icon: Hexagon, label: 'Causes actives', value: stats.causes.active, color: 'text-amber-600' },
+                { icon: Church, label: 'Causes actives', value: stats.causes.active, color: 'text-amber-600' },
                 { icon: TrendingUp, label: 'Dons confirmés', value: stats.donations.totalConfirmed, color: 'text-green-600' },
-                { icon: Heart, label: 'Montant total', value: `${Math.round(stats.donations.totalAmount).toLocaleString('fr-FR')} FCFA`, color: 'text-rose-600' },
+                { icon: Heart, label: 'Montant total', value: `${Math.round(stats.donations.totalAmount).toLocaleString('fr-FR')} multi-devise`, color: 'text-rose-600' },
                 { icon: Users, label: 'Mécènes', value: stats.users.mecenes, color: 'text-violet-600' },
               ].map((stat, i) => (
                 <motion.div
@@ -213,12 +215,11 @@ export function HomePage() {
                       <div className="text-right">
                         <p className="text-sm text-gray-500">Collecté</p>
                         <p className="text-2xl font-bold text-amber-600">
-                          {Math.round(meceneDuJour.donationTotal).toLocaleString('fr-FR')}{' '}
-                          <span className="text-sm font-normal">FCFA</span>
+                          {formatMoney(meceneDuJour.donationTotal, meceneDuJour.currency)}
                         </p>
                         {meceneDuJour.goalAmount && (
                           <p className="text-xs text-gray-400">
-                            sur {Math.round(meceneDuJour.goalAmount).toLocaleString('fr-FR')} FCFA
+                            sur {formatMoney(meceneDuJour.goalAmount, meceneDuJour.currency)}
                           </p>
                         )}
                       </div>
@@ -268,10 +269,10 @@ export function HomePage() {
         ) : activeCauses.length === 0 ? (
           <Card className="border-dashed border-amber-300 bg-amber-50/50">
             <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-              <Hexagon className="h-12 w-12 text-amber-300" />
+              <Church className="h-12 w-12 text-amber-300" />
               <h3 className="text-lg font-semibold text-gray-700">Aucune cause active</h3>
               <p className="text-sm text-gray-500">
-                Soyez le premier à soumettre une cause et à trouver vos mécènes !
+                Soyez le premier à soumettre une cause et à mobiliser votre communauté !
               </p>
               <Button
                 className="mt-2 bg-amber-600 text-white hover:bg-amber-700"
@@ -332,11 +333,11 @@ export function HomePage() {
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-semibold text-amber-600">
-                          {Math.round(cause.donationTotal).toLocaleString('fr-FR')} FCFA
+                          {formatMoney(cause.donationTotal, cause.currency)}
                         </span>
                         {cause.goalAmount && (
                           <span className="text-xs text-gray-400">
-                            {cause.progressPercent}% de {Math.round(cause.goalAmount).toLocaleString('fr-FR')}
+                            {cause.progressPercent}% de {formatMoney(cause.goalAmount, cause.currency)}
                           </span>
                         )}
                       </div>
@@ -372,12 +373,12 @@ export function HomePage() {
                 step: '02',
                 title: 'Présentez votre cause',
                 desc: 'Décrivez votre projet, fixez des jalons et soumettez pour validation.',
-                icon: Hexagon,
+                icon: Church,
               },
               {
                 step: '03',
                 title: 'Recevez des dons',
-                desc: 'Les mécènes soutiennent votre cause et progressent dans les ceintures de mécénat.',
+                desc: 'Les donateurs soutiennent votre cause et suivent l’impact étape par étape.',
                 icon: Heart,
               },
             ].map((item, i) => (
@@ -412,8 +413,8 @@ export function HomePage() {
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Plateforme de confiance</h3>
               <p className="mt-1 text-sm text-gray-600">
-                Chaque cause est vérifiée par notre équipe. Les codes d&apos;accès garantissent la qualité et la transparence.
-                Une commission de 5% seulement finance le fonctionnement de la ruche.
+                Chaque cause est vérifiée avec une référence communautaire ou ecclésiale. Les codes d&apos;accès garantissent la qualité et la transparence.
+                Une commission de 5% seulement finance le fonctionnement de la plateforme.
               </p>
             </div>
           </CardContent>

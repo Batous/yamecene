@@ -24,9 +24,9 @@ import {
 } from 'lucide-react'
 
 const PRICING_OPTIONS = [
-  { count: 1, price: '1 000 FCFA', label: 'Code individuel' },
-  { count: 3, price: '2 500 FCFA', label: 'Pack 3 codes (économisez 500 FCFA)' },
-  { count: 5, price: '4 000 FCFA', label: 'Pack 5 codes (économisez 1 000 FCFA)' },
+  { count: 1, price: '2 EUR / 2 USD / 5 000 CDF', label: 'Code individuel' },
+  { count: 3, price: '5 EUR / 5 USD / 12 000 CDF', label: 'Pack 3 codes' },
+  { count: 5, price: '8 EUR / 8 USD / 20 000 CDF', label: 'Pack 5 codes' },
 ]
 
 export function CodeAccesPage() {
@@ -83,7 +83,7 @@ export function CodeAccesPage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Code d&apos;accès</h1>
           <p className="mt-2 text-gray-600">
-            Obtenez un code d&apos;accès pour soumettre votre cause sur YaMécènes.
+            Obtenez un code d&apos;accès pour soumettre une cause chrétienne ou communautaire sur YaMécènes.
             Chaque code permet de présenter une seule cause vérifiée.
           </p>
         </div>
@@ -212,13 +212,14 @@ export function CodeAccesPage() {
           <div className="text-center">
             <h3 className="mb-2 text-lg font-semibold text-gray-900">Réseau de confiance</h3>
             <p className="mb-6 text-sm text-gray-600">
-              Vous êtes une structure, association ou entreprise ? Contactez-nous pour obtenir des codes en lot pour votre communauté.
+              Vous êtes une église, paroisse, association chrétienne ou structure communautaire congolaise ?
+              Contactez-nous pour obtenir des codes en lot pour votre communauté.
             </p>
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-4">
                 <Users className="h-8 w-8 text-amber-500" />
                 <div className="text-left">
-                  <p className="text-sm font-semibold text-gray-900">Partenaires</p>
+                  <p className="text-sm font-semibold text-gray-900">Églises partenaires</p>
                   <p className="text-xs text-gray-500">Codes en lot pour vos membres</p>
                 </div>
               </div>
