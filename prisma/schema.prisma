@@ -1,9 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -49,7 +50,11 @@ model Cause {
   country     String?
   reference   String?     // qui connaît le porteur
   goalAmount  Float?
+  currency    String      @default("CDF")
   status      String      @default("pending") // 'pending' | 'active' | 'closed' | 'rejected'
+  payoutModel String      @default("fund_manager") // 'fund_manager' | 'direct' | 'multisig'
+  approvalThreshold Int   @default(0)
+  fundManagerRef String?
   porteurId   String
   accessCode  String?   @unique
   createdAt   DateTime    @default(now())
@@ -59,6 +64,8 @@ model Cause {
   accessCodeRel AccessCode?  @relation(fields: [accessCode], references: [code])
   milestones  Milestone[]
   dons        Don[]
+  signatories Signatory[]
+  payoutRequests PayoutRequest[]
 }
 
 model Milestone {
@@ -79,9 +86,10 @@ model Don {
   causeId     String
   meceneId    String?   // nullable si discret
   amount      Float
+  currency    String    @default("CDF")
   commission  Float
   netPorteur  Float
-  method      String    @default("mobile_money") // 'mobile_money' | 'paypal' | 'autre'
+  method      String    @default("mobile_money") // local payment method selected at checkout
   status      String    @default("pending") // 'pending' | 'confirmed' | 'failed'
   displayName String?   // nom affiché ou pseudonyme
   createdAt   DateTime  @default(now())
@@ -90,6 +98,79 @@ model Don {
   cause       Cause     @relation(fields: [causeId], references: [id], onDelete: Cascade)
   mecene      User?     @relation("MeceneDons", fields: [meceneId], references: [id])
   poem        Poem?
+  payment     Payment?
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  donId           String   @unique
+  provider        String
+  providerRef     String?  @unique
+  status          String   @default("created") // 'created' | 'pending' | 'confirmed' | 'failed' | 'expired'
+  checkoutUrl     String?
+  providerPayload Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  don             Don      @relation(fields: [donId], references: [id], onDelete: Cascade)
+  webhookEvents   WebhookEvent[]
+}
+
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  provider        String
+  eventId         String
+  eventType       String?
+  paymentId       String?
+  payload         Json
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  payment         Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, eventId])
+}
+
+model Signatory {
+  id              String   @id @default(cuid())
+  causeId         String
+  userId          String
+  role            String
+  createdAt       DateTime @default(now())
+
+  cause           Cause    @relation(fields: [causeId], references: [id], onDelete: Cascade)
+  approvals       PayoutApproval[]
+
+  @@unique([causeId, userId])
+}
+
+model PayoutRequest {
+  id              String   @id @default(cuid())
+  causeId         String
+  amount          Float
+  currency        String
+  provider        String
+  providerRef     String?  @unique
+  payoutModel     String
+  status          String   @default("pending") // 'pending' | 'partial_approval' | 'approved' | 'paid' | 'rejected'
+  approvalThreshold Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  cause           Cause    @relation(fields: [causeId], references: [id], onDelete: Cascade)
+  approvals       PayoutApproval[]
+}
+
+model PayoutApproval {
+  id              String   @id @default(cuid())
+  payoutRequestId String
+  signatoryId     String
+  approvedAt      DateTime @default(now())
+
+  payoutRequest   PayoutRequest @relation(fields: [payoutRequestId], references: [id], onDelete: Cascade)
+  signatory       Signatory     @relation(fields: [signatoryId], references: [id], onDelete: Cascade)
+
+  @@unique([payoutRequestId, signatoryId])
 }
 
 model Ceinture {
