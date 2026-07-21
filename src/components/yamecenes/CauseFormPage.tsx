@@ -152,12 +152,11 @@ export function CauseFormPage() {
     if (step === 0) return codeValid === true
     if (step === 1) {
       const hasEmergencyEvidence = Boolean(evidenceNotes.trim()) || evidenceUrls.split('\n').some((url) => url.trim())
+      const hasImpactAndAutonomy = impactStatement.trim().length >= 20 && autonomyPlan.trim().length >= 20
       return title.trim().length >= 5
         && summary.trim().length >= 10
         && description.trim().length >= 20
-        && (projectFamily === 'emergency'
-          ? hasEmergencyEvidence
-          : impactStatement.trim().length >= 20 && autonomyPlan.trim().length >= 20)
+        && (projectFamily === 'emergency' ? hasEmergencyEvidence : hasImpactAndAutonomy)
     }
     if (step === 2) {
       const hasDirectDetails = Boolean(mobileOperator && mobileNumber.trim())
