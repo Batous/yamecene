@@ -36,7 +36,7 @@ model AccessCode {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  cause     Cause?
+  causes    Cause[]
 }
 
 model Cause {
@@ -46,6 +46,12 @@ model Cause {
   summary     String?
   description String
   type        String?     // famille de cause
+  projectFamily String    @default("development") // 'emergency' | 'development'
+  impactStatement String?
+  autonomyPlan String?
+  evidenceStatus String   @default("not_required") // 'not_required' | 'pending' | 'verified' | 'rejected'
+  evidenceNotes String?
+  evidenceUrls String[]
   city        String?
   country     String?
   reference   String?     // qui connaît le porteur
@@ -55,8 +61,10 @@ model Cause {
   payoutModel String      @default("fund_manager") // 'fund_manager' | 'direct' | 'multisig'
   approvalThreshold Int   @default(0)
   fundManagerRef String?
+  paymentMode String      @default("mixed") // 'direct' | 'aggregator' | 'mixed'
+  directPaymentDetails Json?
   porteurId   String
-  accessCode  String?   @unique
+  accessCode  String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

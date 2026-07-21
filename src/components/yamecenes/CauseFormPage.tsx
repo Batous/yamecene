@@ -41,6 +41,12 @@ export function CauseFormPage() {
   const [summary, setSummary] = useState('')
   const [description, setDescription] = useState('')
   const [causeType, setCauseType] = useState('')
+  const [projectFamily, setProjectFamily] = useState('development')
+  const [impactStatement, setImpactStatement] = useState('')
+  const [autonomyPlan, setAutonomyPlan] = useState('')
+  const [evidenceNotes, setEvidenceNotes] = useState('')
+  const [evidenceUrls, setEvidenceUrls] = useState('')
+  const [paymentMode, setPaymentMode] = useState('mixed')
   const [payoutModel, setPayoutModel] = useState('fund_manager')
   const [approvalThreshold, setApprovalThreshold] = useState('3')
   const [city, setCity] = useState('')
@@ -95,11 +101,20 @@ export function CauseFormPage() {
           summary,
           description,
           type: causeType,
+          projectFamily,
+          impactStatement: impactStatement.trim().length >= 20 ? impactStatement : undefined,
+          autonomyPlan: autonomyPlan.trim().length >= 20 ? autonomyPlan : undefined,
+          evidenceNotes: evidenceNotes.trim() || undefined,
+          evidenceUrls: evidenceUrls.split('\n').map((url) => url.trim()).filter(Boolean),
           city,
           country,
           reference,
           goalAmount: goalAmount ? parseFloat(goalAmount) : undefined,
           currency,
+          paymentMode,
+          directPaymentDetails: paymentMode !== 'aggregator' && mobileOperator && mobileNumber
+            ? { type: mobileOperator, value: mobileNumber }
+            : undefined,
           payoutModel,
           approvalThreshold: payoutModel === 'multisig' ? parseInt(approvalThreshold, 10) : undefined,
           milestones: milestones.filter((m) => m.label && m.target).map((m) => ({
@@ -135,8 +150,21 @@ export function CauseFormPage() {
 
   function canProceed(): boolean {
     if (step === 0) return codeValid === true
-    if (step === 1) return title.trim().length >= 5 && summary.trim().length >= 10 && description.trim().length >= 20
-    if (step === 2) return porteurName.trim().length >= 2 && porteurEmail.includes('@')
+    if (step === 1) {
+      const hasEmergencyEvidence = Boolean(evidenceNotes.trim()) || evidenceUrls.split('\n').some((url) => url.trim())
+      return title.trim().length >= 5
+        && summary.trim().length >= 10
+        && description.trim().length >= 20
+        && (projectFamily === 'emergency'
+          ? hasEmergencyEvidence
+          : impactStatement.trim().length >= 20 && autonomyPlan.trim().length >= 20)
+    }
+    if (step === 2) {
+      const hasDirectDetails = Boolean(mobileOperator && mobileNumber.trim())
+      return porteurName.trim().length >= 2
+        && porteurEmail.includes('@')
+        && (paymentMode === 'aggregator' || hasDirectDetails)
+    }
     return false
   }
 
@@ -290,6 +318,37 @@ export function CauseFormPage() {
                   <Label htmlFor="description">Description complète *</Label>
                   <Textarea id="description" placeholder="Contexte, besoins, impact attendu..." value={description} onChange={(e) => setDescription(e.target.value)} rows={5} />
                 </div>
+                <div className="space-y-2">
+                  <Label>Famille du projet *</Label>
+                  <Select value={projectFamily} onValueChange={setProjectFamily}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="development">Développement et autonomie</SelectItem>
+                      <SelectItem value="emergency">Urgence et aide humanitaire</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="impactStatement">{projectFamily === 'emergency' ? 'Impact attendu (facultatif)' : 'Impact attendu *'}</Label>
+                  <Textarea id="impactStatement" placeholder={projectFamily === 'emergency' ? 'Facultatif : quel changement concret ce projet produira-t-il ?' : 'Quel changement concret ce projet produira-t-il ?'} value={impactStatement} onChange={(e) => setImpactStatement(e.target.value)} rows={3} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="autonomyPlan">{projectFamily === 'emergency' ? 'Retour à la stabilité (facultatif)' : "Plan d'autonomie *"}</Label>
+                  <Textarea id="autonomyPlan" placeholder={projectFamily === 'emergency' ? 'Facultatif : comment revenir à une situation stable ?' : 'Comment les effets du projet pourront-ils durer ?'} value={autonomyPlan} onChange={(e) => setAutonomyPlan(e.target.value)} rows={3} />
+                </div>
+                {projectFamily === 'emergency' && (
+                  <div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="evidenceNotes">Note de vérification ou preuve *</Label>
+                      <Textarea id="evidenceNotes" placeholder="Décrivez la vérification effectuée ou la preuve disponible." value={evidenceNotes} onChange={(e) => setEvidenceNotes(e.target.value)} rows={3} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="evidenceUrls">Liens de preuve, un par ligne</Label>
+                      <Textarea id="evidenceUrls" placeholder="https://..." value={evidenceUrls} onChange={(e) => setEvidenceUrls(e.target.value)} rows={2} />
+                    </div>
+                    <p className="text-xs text-amber-800">Une urgence ne peut pas être soumise sans note de vérification ou lien de preuve.</p>
+                  </div>
+                )}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Categorie</Label>
@@ -384,6 +443,17 @@ export function CauseFormPage() {
                 <CardDescription>Ces informations seront affichees sur la page de votre projet.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Mode de contribution *</Label>
+                  <Select value={paymentMode} onValueChange={setPaymentMode}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="direct">Paiement direct au bénéficiaire</SelectItem>
+                      <SelectItem value="aggregator">Partenaire de paiement autorisé</SelectItem>
+                      <SelectItem value="mixed">Mixte : direct ou partenaire autorisé</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="pname">Nom complet *</Label>
@@ -405,9 +475,9 @@ export function CauseFormPage() {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-amber-100 bg-amber-50/50 p-4 space-y-3">
-                  <p className="text-sm font-medium text-amber-800">Configuration Mobile Money (optionnel)</p>
-                  <p className="text-xs text-gray-500">Pour recevoir les fonds directement sur votre compte mobile money.</p>
+                {paymentMode !== 'aggregator' && <div className="rounded-lg border border-amber-100 bg-amber-50/50 p-4 space-y-3">
+                  <p className="text-sm font-medium text-amber-800">Canal de paiement direct *</p>
+                  <p className="text-xs text-gray-500">Renseignez le canal choisi par le bénéficiaire pour recevoir directement les contributions.</p>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label>Opérateur</Label>
@@ -425,7 +495,8 @@ export function CauseFormPage() {
                       <Input placeholder="77 123 45 67" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
                     </div>
                   </div>
-                </div>
+                </div>}
+                <p className="text-xs leading-5 text-gray-600">YaMecenes facilite la découverte, la gouvernance et la mise en relation. Les paiements sont fournis par le bénéficiaire ou un partenaire autorisé; YaMecenes ne reçoit, ne détient et ne contrôle pas automatiquement les fonds.</p>
               </CardContent>
             </Card>
           )}

@@ -3,8 +3,8 @@ import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
-  title: 'YaMecenes - Congolese solidarity, open to all',
-  description: 'A platform connecting Congolese projects with patrons in the DRC and diaspora.',
+  title: 'YaMecenes - Projects and solidarity, without borders',
+  description: 'A technology platform for project discovery, governance, and connection.',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

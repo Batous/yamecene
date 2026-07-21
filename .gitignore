@@ -53,3 +53,7 @@ prompt
 server.log
 # Skills directory
 /skills/
+<<<<<<< HEAD
+=======
+src/generated/
+>>>>>>> 7b236d9 (International positioning: remove DRC/diaspora exclusivity, evidence-based emergency flow, direct/mixed payment modes)

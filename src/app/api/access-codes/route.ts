@@ -21,7 +21,7 @@ export async function GET(_request: NextRequest) {
     const codes = await db.accessCode.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        cause: {
+        causes: {
           select: {
             id: true,
             title: true,

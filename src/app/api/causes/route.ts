@@ -11,11 +11,18 @@ const createCauseSchema = z.object({
   summary: z.string().min(10, 'Le résumé doit contenir au moins 10 caractères'),
   description: z.string().min(20, 'La description doit contenir au moins 20 caractères'),
   type: z.string().optional(),
+  projectFamily: z.enum(['emergency', 'development']).default('development'),
+  impactStatement: z.string().min(20).optional(),
+  autonomyPlan: z.string().min(20).optional(),
+  evidenceNotes: z.string().max(2000).optional(),
+  evidenceUrls: z.array(z.string().url()).max(8).default([]),
   city: z.string().optional(),
   country: z.string().optional(),
   reference: z.string().optional(),
   goalAmount: z.number().positive('Le montant objectif doit être positif').optional(),
   currency: z.string().optional(),
+  paymentMode: z.enum(['direct', 'aggregator', 'mixed']).default('mixed'),
+  directPaymentDetails: z.record(z.string(), z.string()).optional(),
   payoutModel: z.enum(['fund_manager', 'direct', 'multisig']).default('fund_manager'),
   approvalThreshold: z.number().int().min(3).max(10).optional(),
   accessCode: z.string().min(1, "Le code d'accès est requis"),
@@ -35,6 +42,16 @@ const createCauseSchema = z.object({
   porteurCountry: z.string().optional(),
   porteurMobileOperator: z.string().optional(),
   porteurMobileNumber: z.string().optional(),
+}).superRefine((data, context) => {
+  if (data.projectFamily !== 'emergency') return
+  const hasEvidenceNotes = Boolean(data.evidenceNotes?.trim())
+  if (!hasEvidenceNotes && data.evidenceUrls.length === 0) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['evidenceNotes'],
+      message: 'Emergency projects require supporting evidence or verification notes',
+    })
+  }
 });
 
 // ─── Helpers ───────────────────────────────────────────────────
@@ -57,7 +74,7 @@ export async function GET() {
   try {
     const causes = await db.cause.findMany({
       where: {
-        status: { in: ['active', 'pending'] },
+        status: 'active',
       },
       include: {
         porteur: {
@@ -149,6 +166,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (data.paymentMode === 'direct' && !data.directPaymentDetails) {
+      return NextResponse.json(
+        { error: 'Un moyen de paiement direct est requis pour ce mode' },
+        { status: 400 }
+      );
+    }
 
     // Build mobile money config
     const mobileMoneyConfig = data.porteurMobileOperator && data.porteurMobileNumber
@@ -197,11 +220,19 @@ export async function POST(request: NextRequest) {
           summary: data.summary,
           description: data.description,
           type: data.type,
+          projectFamily: data.projectFamily,
+          impactStatement: data.impactStatement ?? null,
+          autonomyPlan: data.autonomyPlan ?? null,
+          evidenceStatus: data.projectFamily === 'emergency' || data.evidenceUrls.length ? 'pending' : 'not_required',
+          evidenceNotes: data.evidenceNotes ?? null,
+          evidenceUrls: data.evidenceUrls,
           city: data.city,
           country: data.country,
           reference: data.reference,
           goalAmount: data.goalAmount,
           currency: normalizeCurrency(data.currency),
+          paymentMode: data.paymentMode,
+          directPaymentDetails: data.directPaymentDetails ?? undefined,
           payoutModel: data.payoutModel,
           approvalThreshold: data.payoutModel === 'multisig' ? (data.approvalThreshold ?? 3) : 0,
           porteurId: porteur.id,
