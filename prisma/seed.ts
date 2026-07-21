@@ -2,16 +2,16 @@ import { db } from '../src/lib/db'
 import { Prisma } from '../src/generated/prisma'
 
 const owners = [
-  { email: 'collectif.limete@example.org', name: 'Collectif numérique de Limete', city: 'Kinshasa', country: 'République démocratique du Congo' },
-  { email: 'mobilite.goma@example.org', name: 'Réseau Santé Mobile Goma', city: 'Goma', country: 'République démocratique du Congo' },
-  { email: 'cooperative.lubumbashi@example.org', name: 'Coopérative Tujenge', city: 'Lubumbashi', country: 'République démocratique du Congo' },
-  { email: 'agri.saintlouis@example.org', name: 'Coopérative Ndar Durable', city: 'Saint-Louis', country: 'Sénégal' },
-  { email: 'sante.bafoussam@example.org', name: 'Réseau Santé des Hauts-Plateaux', city: 'Bafoussam', country: 'Cameroun' },
-  { email: 'atelier.lille@example.org', name: 'Atelier Matières Communes', city: 'Lille', country: 'France' },
-  { email: 'formation.porto@example.org', name: 'Compétences Ouvertes Porto', city: 'Porto', country: 'Portugal' },
-  { email: 'research.pune@example.org', name: 'Laboratoire Eau Locale', city: 'Pune', country: 'Inde' },
-  { email: 'mobilidade.recife@example.org', name: 'Rede Clínica Móvel Recife', city: 'Recife', country: 'Brésil' },
-  { email: 'learning.amman@example.org', name: 'Atelier Apprendre Amman', city: 'Amman', country: 'Jordanie' },
+  { email: 'collectif.limete@example.org', name: '(test mode) Collectif numérique de Limete', city: 'Kinshasa', country: 'République démocratique du Congo' },
+  { email: 'mobilite.goma@example.org', name: '(test mode) Réseau Santé Mobile Goma', city: 'Goma', country: 'République démocratique du Congo' },
+  { email: 'cooperative.lubumbashi@example.org', name: '(test mode) Coopérative Tujenge', city: 'Lubumbashi', country: 'République démocratique du Congo' },
+  { email: 'agri.saintlouis@example.org', name: '(test mode) Coopérative Ndar Durable', city: 'Saint-Louis', country: 'Sénégal' },
+  { email: 'sante.bafoussam@example.org', name: '(test mode) Réseau Santé des Hauts-Plateaux', city: 'Bafoussam', country: 'Cameroun' },
+  { email: 'atelier.lille@example.org', name: '(test mode) Atelier Matières Communes', city: 'Lille', country: 'France' },
+  { email: 'formation.porto@example.org', name: '(test mode) Compétences Ouvertes Porto', city: 'Porto', country: 'Portugal' },
+  { email: 'research.pune@example.org', name: '(test mode) Laboratoire Eau Locale', city: 'Pune', country: 'Inde' },
+  { email: 'mobilidade.recife@example.org', name: '(test mode) Rede Clínica Móvel Recife', city: 'Recife', country: 'Brésil' },
+  { email: 'learning.amman@example.org', name: '(test mode) Atelier Apprendre Amman', city: 'Amman', country: 'Jordanie' },
 ] as const
 
 const projects = [
@@ -24,7 +24,7 @@ const projects = [
     impactStatement: 'Former 180 participants en douze mois et certifier 20 jeunes capables d’assurer la maintenance des deux espaces.',
     autonomyPlan: 'Les ateliers avancés, la maintenance de proximité et les adhésions institutionnelles financeront le renouvellement du matériel et les formateurs.',
     evidenceStatus: 'not_required', evidenceNotes: null, evidenceUrls: [], paymentMode: 'mixed', currency: 'CDF', goalAmount: 18000000,
-    directPaymentDetails: { type: 'mobile_money', value: 'Compte de démonstration du collectif' }, ownerEmail: 'collectif.limete@example.org',
+    directPaymentDetails: { type: 'mobile_money', value: '(test mode) Compte de démonstration du collectif' }, ownerEmail: 'collectif.limete@example.org',
   },
   {
     slug: 'ambulance-communautaire-goma',
@@ -46,7 +46,7 @@ const projects = [
     impactStatement: 'Créer trente sources de revenus réguliers et produire 1 500 œufs par semaine après neuf mois d’activité.',
     autonomyPlan: 'La vente d’œufs, de volailles et de compost alimente un fonds de roulement collectif destiné aux intrants et aux prochains cycles.',
     evidenceStatus: 'not_required', evidenceNotes: null, evidenceUrls: [], paymentMode: 'direct', currency: 'CDF', goalAmount: 24000000,
-    directPaymentDetails: { type: 'bank_transfer', value: 'Compte coopératif de démonstration' }, ownerEmail: 'cooperative.lubumbashi@example.org',
+    directPaymentDetails: { type: 'bank_transfer', value: '(test mode) Compte coopératif de démonstration' }, ownerEmail: 'cooperative.lubumbashi@example.org',
   },
   {
     slug: 'irrigation-solaire-saint-louis',
@@ -57,7 +57,7 @@ const projects = [
     impactStatement: 'Augmenter de 35 % le volume commercialisable et réduire de moitié les dépenses énergétiques de quarante exploitations en un an.',
     autonomyPlan: 'Une retenue sur chaque vente finance la maintenance, le remplacement des pièces et l’extension progressive du réseau.',
     evidenceStatus: 'not_required', evidenceNotes: null, evidenceUrls: [], paymentMode: 'mixed', currency: 'XOF', goalAmount: 18500000,
-    directPaymentDetails: { type: 'mobile_money', value: 'Compte coopératif de démonstration' }, ownerEmail: 'agri.saintlouis@example.org',
+    directPaymentDetails: { type: 'mobile_money', value: '(test mode) Compte coopératif de démonstration' }, ownerEmail: 'agri.saintlouis@example.org',
   },
   {
     slug: 'agents-sante-bafoussam',
@@ -79,7 +79,7 @@ const projects = [
     impactStatement: 'Former 36 personnes, détourner 8 tonnes de textiles du rebut et atteindre 300 ventes au cours de la première année.',
     autonomyPlan: 'Les ventes, les commandes d’entreprises et les ateliers payants couvriront progressivement les salaires, le loyer et les matières complémentaires.',
     evidenceStatus: 'not_required', evidenceNotes: null, evidenceUrls: [], paymentMode: 'direct', currency: 'EUR', goalAmount: 48000,
-    directPaymentDetails: { type: 'bank_transfer', value: 'Compte associatif de démonstration' }, ownerEmail: 'atelier.lille@example.org',
+    directPaymentDetails: { type: 'bank_transfer', value: '(test mode) Compte associatif de démonstration' }, ownerEmail: 'atelier.lille@example.org',
   },
   {
     slug: 'formation-renovation-porto',
@@ -90,7 +90,7 @@ const projects = [
     impactStatement: 'Former 60 personnes et obtenir au moins 42 insertions professionnelles ou créations d’activité dans les dix-huit mois.',
     autonomyPlan: 'Les prestations des chantiers-écoles et les formations commandées par des entreprises financeront les cohortes suivantes.',
     evidenceStatus: 'not_required', evidenceNotes: null, evidenceUrls: [], paymentMode: 'mixed', currency: 'EUR', goalAmount: 65000,
-    directPaymentDetails: { type: 'bank_transfer', value: 'Compte de formation de démonstration' }, ownerEmail: 'formation.porto@example.org',
+    directPaymentDetails: { type: 'bank_transfer', value: '(test mode) Compte de formation de démonstration' }, ownerEmail: 'formation.porto@example.org',
   },
   {
     slug: 'filtres-eau-pune',
@@ -113,7 +113,7 @@ const projects = [
     autonomyPlan: 'À la fin de la réponse immédiate, l’unité intégrera un calendrier partagé financé par les centres partenaires et des prestations de prévention.',
     evidenceStatus: 'pending', evidenceNotes: 'Cartographie des quartiers isolés et besoins consolidés par les équipes locales de santé après les inondations.', evidenceUrls: [],
     paymentMode: 'mixed', currency: 'USD', goalAmount: 55000,
-    directPaymentDetails: { type: 'bank_transfer', value: 'Compte opérationnel de démonstration' }, ownerEmail: 'mobilidade.recife@example.org',
+    directPaymentDetails: { type: 'bank_transfer', value: '(test mode) Compte opérationnel de démonstration' }, ownerEmail: 'mobilidade.recife@example.org',
   },
   {
     slug: 'education-mobile-amman',
@@ -130,6 +130,13 @@ const projects = [
 ]
 
 async function seed() {
+  const nonDemoUserCount = await db.user.count({
+    where: { NOT: { email: { endsWith: '@example.org' } } },
+  })
+  if (nonDemoUserCount > 0) {
+    throw new Error('Refusing to run: database contains non-demo users. This seed is for test/demo environments only.')
+  }
+
   const ownerIds = new Map<string, string>()
 
   for (const owner of owners) {
