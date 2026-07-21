@@ -48,7 +48,7 @@ function projectPresentation(project: Project, locale: 'fr' | 'en') {
 export function HomePage() {
   const { navigate, locale } = useAppStore(); const t = words(locale)
   const [projects, setProjects] = useState<Project[]>([]); const [stats, setStats] = useState<Stats | null>(null); const [loading, setLoading] = useState(true)
-  useEffect(() => { Promise.all([fetch('/api/causes').then((r) => r.json()), fetch('/api/admin/stats').then((r) => r.json())]).then(([projectData, statData]) => { setProjects(projectData.causes ?? []); setStats(statData) }).finally(() => setLoading(false)) }, [])
+  useEffect(() => { Promise.all([fetch('/api/causes').then((r) => r.json()), fetch('/api/stats').then((r) => r.json())]).then(([projectData, statData]) => { setProjects(projectData.causes ?? []); setStats(statData) }).finally(() => setLoading(false)) }, [])
   const active = projects.filter((project) => project.progressPercent >= 0)
   return <div>
     <section className="border-b border-emerald-100 bg-[#f4f8f5]"><div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.25fr_.75fr] lg:px-8 lg:py-20">

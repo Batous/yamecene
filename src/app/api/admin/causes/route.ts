@@ -8,9 +8,21 @@ const updateCauseStatusSchema = z.object({
   status: z.enum(['pending', 'active', 'closed', 'rejected']),
 });
 
+function isAuthorized(request: NextRequest) {
+  const secret = process.env.ADMIN_API_KEY;
+  return Boolean(secret && request.headers.get('x-admin-key') === secret);
+}
+
 // ─── GET /api/admin/causes ────────────────────────────────────
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json(
+      { error: 'Administrator authorization is required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const causes = await db.cause.findMany({
       include: {
@@ -88,6 +100,13 @@ export async function GET(_request: NextRequest) {
 // ─── PATCH /api/admin/causes ──────────────────────────────────
 
 export async function PATCH(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json(
+      { error: 'Administrator authorization is required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
     const parsed = updateCauseStatusSchema.safeParse(body);
