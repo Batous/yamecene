@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
 import { useAppStore } from '@/store/app-store'
@@ -217,6 +217,80 @@ const itemVariants = {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function AdminDashboard() {
+  const [authState, setAuthState] = useState<'checking' | 'unauthenticated' | 'authenticated'>('checking')
+  const [password, setPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/admin/stats')
+      .then((response) => setAuthState(response.ok ? 'authenticated' : 'unauthenticated'))
+      .catch(() => setAuthState('unauthenticated'))
+  }, [])
+
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSubmitting(true)
+    setLoginError('')
+
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+
+      if (!response.ok) {
+        setLoginError('Mot de passe administrateur incorrect.')
+        return
+      }
+
+      setPassword('')
+      setAuthState('authenticated')
+    } catch {
+      setLoginError('Connexion impossible. Veuillez réessayer.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (authState === 'checking') {
+    return <div className="flex min-h-[50vh] items-center justify-center text-sm text-gray-500">Vérification de la session…</div>
+  }
+
+  if (authState === 'unauthenticated') {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-md items-center px-4">
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Lock className="h-5 w-5" />Administration</CardTitle>
+            <CardDescription>Saisissez le mot de passe administrateur pour continuer.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleLogin}>
+              <Input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Mot de passe administrateur"
+                autoComplete="current-password"
+                required
+              />
+              {loginError && <p className="text-sm text-red-600" role="alert">{loginError}</p>}
+              <Button className="w-full" type="submit" disabled={submitting}>
+                {submitting ? 'Connexion…' : 'Se connecter'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return <AdminDashboardContent />
+}
+
+function AdminDashboardContent() {
   const { navigate } = useAppStore()
   const { toast } = useToast()
 

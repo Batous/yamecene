@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { isAdminAuthorized } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 // ─── Zod Schema ───────────────────────────────────────────────
@@ -16,7 +17,14 @@ const generateCodesSchema = z.object({
 
 // ─── GET /api/access-codes ────────────────────────────────────
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  if (!isAdminAuthorized(request)) {
+    return NextResponse.json(
+      { error: 'Administrator authorization is required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const codes = await db.accessCode.findMany({
       orderBy: { createdAt: 'desc' },
@@ -65,6 +73,13 @@ export async function GET(_request: NextRequest) {
 // ─── POST /api/access-codes ───────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  if (!isAdminAuthorized(request)) {
+    return NextResponse.json(
+      { error: 'Administrator authorization is required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
     const parsed = generateCodesSchema.safeParse(body);

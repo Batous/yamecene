@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { isAdminAuthorized } from '@/lib/admin-auth';
 import { z } from 'zod';
 
 // ─── Zod Schema ───────────────────────────────────────────────
@@ -8,15 +9,10 @@ const updateCauseStatusSchema = z.object({
   status: z.enum(['pending', 'active', 'closed', 'rejected']),
 });
 
-function isAuthorized(request: NextRequest) {
-  const secret = process.env.ADMIN_API_KEY;
-  return Boolean(secret && request.headers.get('x-admin-key') === secret);
-}
-
 // ─── GET /api/admin/causes ────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isAdminAuthorized(request)) {
     return NextResponse.json(
       { error: 'Administrator authorization is required' },
       { status: 401 }
@@ -100,7 +96,7 @@ export async function GET(request: NextRequest) {
 // ─── PATCH /api/admin/causes ──────────────────────────────────
 
 export async function PATCH(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isAdminAuthorized(request)) {
     return NextResponse.json(
       { error: 'Administrator authorization is required' },
       { status: 401 }

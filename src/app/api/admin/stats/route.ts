@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-
-function isAuthorized(request: NextRequest) {
-  const secret = process.env.ADMIN_API_KEY;
-  return Boolean(secret && request.headers.get('x-admin-key') === secret);
-}
+import { isAdminAuthorized } from '@/lib/admin-auth';
 
 // ─── GET /api/admin/stats ────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isAdminAuthorized(request)) {
     return NextResponse.json(
       { error: 'Administrator authorization is required' },
       { status: 401 }
